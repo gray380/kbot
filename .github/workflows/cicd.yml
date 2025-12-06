@@ -39,3 +39,39 @@ jobs:
       
       - name: Push Docker image
         run: make push
+
+  cd:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CR_PAT }}
+      
+      - name: Extract version and architecture
+        id: vars
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo dev)-$(git rev-parse --short HEAD)
+          HOST_GOOS=$(go env GOHOSTOS)
+          HOST_GOARCH=$(go env GOHOSTARCH)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "os=${HOST_GOOS}" >> $GITHUB_OUTPUT
+          echo "arch=${HOST_GOARCH}" >> $GITHUB_OUTPUT
+      
+      - name: Update Helm values
+        run: |
+          sed -i "s|tag:.*|tag: \"${{ steps.vars.outputs.version }}\"|g" helm/values.yaml
+          sed -i "s|arch:.*|arch: \"${{ steps.vars.outputs.arch }}\"|g" helm/values.yaml
+      
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add helm/values.yaml
+          git diff --staged --quiet || git commit -m "ci: update Helm values to ${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.os }}-${{ steps.vars.outputs.arch }}"
+          git push
