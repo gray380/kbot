@@ -1,5 +1,7 @@
 # Makefile for Project kbot
 # Dummy cicd trigger 0
+# Makefile for Project kbot
+# Dummy cicd trigger 0
 HOST_GOOS     ?= $(shell go env GOHOSTOS)
 HOST_GOARCH   ?= $(shell go env GOHOSTARCH)
 VERSION       ?= $(shell git describe --tags --abbrev=0 2>/dev/null || echo dev)-$(shell git rev-parse --short HEAD)

@@ -66,6 +66,7 @@ jobs:
       - name: Update Helm values
         run: |
           sed -i "s|tag:.*|tag: \"${{ steps.vars.outputs.version }}\"|g" helm/values.yaml
+          sed -i "s|os:.*|os: \"${{ steps.vars.outputs.os }}\"|g" helm/values.yaml
           sed -i "s|arch:.*|arch: \"${{ steps.vars.outputs.arch }}\"|g" helm/values.yaml
       
       - name: Commit and push changes
